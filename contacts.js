@@ -1,43 +1,46 @@
-// const fs = require("fs/promises");
-// const contactsPath = "./db/contacts.json";
+const fs = require("fs/promises");
+const path = require("path");
+const { nanoid } = require("nanoid");
 
-// const fileOperations = async ({ filepath, action, data }) => {
-//   switch (action) {
-//     case "read":
-//       const text = await fs.readFile(filepath, "utf-8");
-//       console.log(text);
-//       break;
+const contactsPath = path.join(__dirname, "db", "contacts.json");
 
-//     case "add":
-//       await fs.appendFile(filepath, data);
-//       break;
-
-//     case "replace":
-//       const result = await fs.writeFile(filepath, data);
-//       break;
-
-//     default:
-//       console.log("Unknown action");
-//   }
-// };
-// fileOperations({ contactsPath, action: "read" });
-// fileOperations({ contactsPath, action: "add", data: "New contact right here" });
-
-//  TODO: задокументировать каждую функцию
-function listContacts() {
-  // ...твой код
+async function listContacts() {
+  const data = await fs.readFile(contactsPath);
+  return JSON.parse(data);
 }
 
-function getContactById(contactId) {
-  //   // ...твой код
+async function getContactById(contactId) {
+  const contactsId = String(contactId);
+  const contacts = await listContacts();
+  const result = contacts.find((contact) => contact.id === contactsId);
+  return result;
 }
 
-function removeContact(contactId) {
-  //   // ...твой код
+async function removeContact(contactId) {
+  const contactsId = String(contactId);
+  const contacts = await listContacts();
+  const index = contacts.findIndex((contact) => contact.id === contactsId);
+  if (index === -1) {
+    return null;
+  }
+  const [result] = contacts.splice(index, 1);
+  await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
+  return result;
 }
 
-function addContact(name, email, phone) {
-  //   // ...твой код
+async function addContact({ name, email, phone }) {
+  const contacts = await listContacts();
+
+  const newContact = {
+    id: nanoid(),
+    name,
+    email,
+    phone,
+  };
+  contacts.push(newContact);
+  await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
+
+  return newContact;
 }
 
 module.exports = {
